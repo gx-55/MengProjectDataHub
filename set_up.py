@@ -11,7 +11,7 @@ setuptools.setup(
     description="Data processing tools for Meng Project",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/sampleproject",
+    url="https://github.com/gx-55/MengProjectDataHub",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
