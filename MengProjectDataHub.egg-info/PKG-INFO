@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: MengProjectDataHub
+Version: 0.0.2
+Summary: Data processing tools for Meng Project
+Home-page: https://github.com/gx-55/MengProjectDataHub
+Author: GengqiaoXie
+Author-email: gx55@cornell.edu
+License: UNKNOWN
+Description: Meng Project
+        This lib is used to manipulate the data in the HitachiFiles and is the crucial basement for the following Machinelearning stuff.
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown

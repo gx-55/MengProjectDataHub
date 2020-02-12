@@ -20,9 +20,9 @@ class dataHub(object):
     def __init__(self,dictName, inputFileName, outPutFileName):
         self.curPath = str(pathlib.Path(__file__).parent.absolute())
         self.newDict = self.curPath + '/' +dictName
-        self.dictName = dictName
         if not os.path.exists(self.newDict):
             os.makedirs(self.newDict)
+        self.client = googleSheetClient()
         self.inputFileName = inputFileName
         self.outPutFileName = self.newDict + '/' +outPutFileName
         self.df = pd.DataFrame()
@@ -32,9 +32,6 @@ class dataHub(object):
         self.dicy = [0, 6.2e7,6.9e7,7.6e7,8.3e7,9e7,9.7e7,10.4e7,11e7,11.6e7,12.2e7,12.8e7,13.5e7,14.2e7]
         self.count = 0
         self.newDf = pd.DataFrame()
-        self.client = googleSheetClient()
-        self.updateData = list()
-
     
     def extractData(self):
         outPutFileName = self.outPutFileName + '.txt'
@@ -48,13 +45,10 @@ class dataHub(object):
         txt.to_csv(tempFile,index=False)
         data = pd.read_csv(tempFile, sep='\s*,\s*',header=0, encoding='ascii', engine='python')
         self.df = pd.DataFrame(data)
-        self.updateData.append(self.dictName)
-        self.updateData.append(self.df.shape[0])
         return self.df
         
     def removeDefault(self):
         self.df = self.df[self.df["Stage X coordinate"] != 0]
-        self.updateData.append(self.df.shape[0])
         return self.df
 
     def __getMatrix(self):
@@ -86,7 +80,7 @@ class dataHub(object):
             
     def buildNewDf(self):
         self.__getMatrix()
-        #final_list = []
+        final_list = []
         wanted_W = []
         wanted_G = []
         count = 1500
@@ -110,7 +104,7 @@ class dataHub(object):
         
         list_is_null = self.list_is_null
         list_not_null = self.list_not_null
-        #col = []
+        col = []
         raw_data = {'0': [], '1': [], '2': [], '3': [],'4': []}
         nullColume = pd.DataFrame(raw_data)
         self.count = 0
@@ -120,7 +114,7 @@ class dataHub(object):
             for j in range(13):
                 if list_is_null[i][j].shape == (0,11):
                     testFrame = pd.concat((list_is_null[i][j],nullColume),axis = 1)
-                    new_columns = testFrame.columns.values
+                    new_columns = testFrame.columns.values;
                     new_columns[10] = 'Characteristic Value W'
                     new_columns[11] = 'Wanted Value W'
                     new_columns[12] = 'Abstraction in W'
@@ -134,7 +128,7 @@ class dataHub(object):
                 list_is_null[i][j] = list_is_null[i][j].reset_index( drop=True)
                 list_not_null[i][j] = list_not_null[i][j].reset_index( drop=True)
                 testFrame = pd.concat((list_is_null[i][j],df_w,df_w[0] - list_is_null[i][j]["Characteristic value"],list_not_null[i][j]['Characteristic value'],df_g,df_g[0] - list_not_null[i][j]["Characteristic value"]),axis = 1)
-                new_columns = testFrame.columns.values
+                new_columns = testFrame.columns.values;
                 new_columns[10] = 'Characteristic Value W'
                 new_columns[11] = 'Wanted Value W'
                 new_columns[12] = 'Abstraction in W'
@@ -155,31 +149,12 @@ class dataHub(object):
         newDf['Abstraction in W'] = newDf['Abstraction in W'].div(10)
         newDf['Abstraction in G'] = newDf['Abstraction in G'].div(10)
         self.newDf = newDf
-        self.updateData.append(self.newDf.shape[0])
-        self.updateData.append(self.count)
-        self.updateData.append(self.newDf['Abstraction in W'].abs().max())
-        self.updateData.append(self.newDf['Abstraction in G'].abs().max())
-        self.updateData.append(self.newDf['Abstraction in W'].abs().min())
-        self.updateData.append(self.newDf['Abstraction in G'].abs().min())
         return newDf
     
     def getGroupNum(self):
-        # self.updateData.append(self.count)
         return self.count
-
-    def getMaxInW(self):
-        return self.newDf['Abstraction in W'].abs().max()
-
-    def getMaxInG(self):
-        return self.newDf['Abstraction in G'].abs().max()
-
-    def getMinInW(self):
-        return self.newDf['Abstraction in W'].abs().min()
-
-    def getMinInG(self):
-        return self.newDf['Abstraction in G'].abs().min()
     
-    def get2DDistributionImage(self,imageName = None, threshold = 30):
+    def get2DDistributionImage(self,imageName = None):
         newDf = self.newDf
         plt.figure(figsize=(13,10))
         plt.scatter(newDf['Stage X coordinate'], 
@@ -195,9 +170,9 @@ class dataHub(object):
                     # labelled this
                     label='Year 298')
         plt.colorbar()
-        plt.scatter(newDf['Stage X coordinate'][ newDf['Abstraction in W'].abs() < threshold], 
+        plt.scatter(newDf['Stage X coordinate'][ newDf['Abstraction in W'].abs() < 30], 
                     # defender size in year 298 as the y axis
-                    newDf['Stage Y coordinate'][ newDf['Abstraction in W'].abs() < threshold], 
+                    newDf['Stage Y coordinate'][ newDf['Abstraction in W'].abs() < 30], 
                     # the marker as
 
                     color = 'r',
@@ -232,11 +207,3 @@ class dataHub(object):
 
     def outputAsCsv(self):
         self.newDf.to_csv(self.outPutFileName+'_o'+'.csv', index = False)
-    
-    def updateToGoogleSheet(self):
-        sheet = self.client.open('MengProject').sheet1
-        with open('lut.json', 'r') as f:
-            lut = json.load(f)
-        for i in range(len(self.updateData)):
-            sheet.update_cell(lut[self.dictName] + 1, i + 1, self.updateData[i])
-        

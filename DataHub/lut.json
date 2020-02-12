@@ -1,0 +1,10 @@
+{
+  "TGAP": 1,
+  "DTGAP": 2,
+  "TTGAP": 3,
+  "FLG": 4,
+  "TCL": 5,
+  "UL": 6,
+  "ETE": 7,
+  "TETE": 8
+}
